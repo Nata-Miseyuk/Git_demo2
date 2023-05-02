@@ -32,3 +32,25 @@ def test_fill_search_city_field(driver):
         (By.CSS_SELECTOR, '.grid-container.grid-4-5 h2'), 'New York'))
     displayed_city = driver.find_element(By.CSS_SELECTOR, '.grid-container.grid-4-5 h2').text
     assert displayed_city == expected_city
+
+
+def test_should_refresh_link(driver):
+    driver.get('https://openweathermap.org/')
+    current_title = driver.title
+    time.sleep(5)
+    driver.refresh()
+    title_after_refresh = driver.title
+    assert current_title == title_after_refresh
+
+
+def test_logo_is_visible_on_dashboard_page(driver):
+    driver.get('https://openweathermap.org/weather-dashboard/')
+    logo_on_dashboard_page = driver.find_element(By.CSS_SELECTOR, "#first-level-nav > li.logo > a > img")
+    assert logo_on_dashboard_page.is_displayed()
+
+
+def test_logo_is_clickable_on_dashboard_page(driver):
+    driver.get('https://openweathermap.org/weather-dashboard/')
+    logo_on_dashboard_page = driver.find_element(By.CSS_SELECTOR, "#first-level-nav > li.logo > a > img")
+    logo_on_dashboard_page.click()
+    assert driver.title == 'Сurrent weather and forecast - OpenWeatherMap'
