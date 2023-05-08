@@ -168,11 +168,15 @@ def test_TC_006_02_03_weather_dashboard_verify_the_transition_to_another_page(dr
 
 
 def test_api_label_is_visible_on_main_page(driver, open_and_load_main_page, wait):
-    driver.find_element(*API_LINK).is_displayed()
+    api_label = driver.find_element(*API_LINK)
+    assert api_label.is_displayed() and api_label.is_enabled()
 
 
 def test_api_label_is_clickable_on_main_page(driver, open_and_load_main_page, wait):
-    driver.find_element(*API_LINK).click()
+    wait.until(EC.element_to_be_clickable(API_LINK))
+    api_label = driver.find_element(*API_LINK)
+    expected_api_label = 'API'
+    assert expected_api_label in api_label.text
 
 
 def test_api_link_redirects_to_api_page(driver, open_and_load_main_page, wait):
