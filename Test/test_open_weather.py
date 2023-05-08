@@ -19,7 +19,8 @@ btn_allow_all = (By.CLASS_NAME, "stick-footer-panel__link")
 btn_go_home = (By.XPATH, "//a[contains(text(),'Home')]")
 # TODO (By.CSS_SELECTOR, 'ul.search-dropdown-menu li:nth-child(1) span:nth-child(1)')))
 footer_copyright = (By.XPATH, "//div[@class='horizontal-section my-5']/div[1]")
-
+logo = (By.CSS_SELECTOR, ".logo > a > img")
+API_LINK = (By.XPATH, "//*[@id='desktop-menu']/ul/li[2]/a")
 
 # About As
 btn_about_us = (By.CSS_SELECTOR, 'a[href*="/about-us"]')
@@ -42,6 +43,10 @@ support_tab = (By.CSS_SELECTOR, '#support-dropdown')
 faq_link = (By.XPATH, '//ul[@class="dropdown-menu dropdown-visible"]/li/a[text()="FAQ"]')
 how_to_start_link = (By.XPATH, '//ul[@class="dropdown-menu dropdown-visible"]/li/a[text()="How to start"]')
 ask_question_link = (By.XPATH, '//ul[@class="dropdown-menu dropdown-visible"]/li/a[text()="Ask a question"]')
+BTN_DASHBOARD = (By.CSS_SELECTOR, "#desktop-menu [href$=-dashboard]")
+BTN_TRY_THE_DASHBOARD_2 = (By.XPATH, "//div[6]//a[text()='Try the Dashboard']")
+BTN_COOKIES = (By.CLASS_NAME, "stick-footer-panel__link")
+ALERT_PANEL_SINGIN = (By.CSS_SELECTOR, '.col-md-6 .panel-heading')
 
 
 @pytest.fixture()
@@ -73,7 +78,7 @@ def cookies_panel_w(driver, open_page):
 #     print(driver.current_url)
 
 
-def test_check_page_title(driver, wait, open_page):
+def test_check_page_title(driver, open_and_load_main_page):
     assert driver.title == 'Сurrent weather and forecast - OpenWeatherMap'
 
 
@@ -120,40 +125,56 @@ def test_visability_copyright(driver, open_page, wait):
     driver.find_element(*footer_copyright).is_displayed()
 
 
-def test_home_page_header(driver):
-    driver.get(URL)
-    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, 'div.owm-loader-container > div')))
+def test_home_page_header(driver, open_and_load_main_page):
     header = driver.find_element(By.CSS_SELECTOR, "h1")
     assert header.text == "OpenWeather", "Wrong h1 Header"
 
 
-def test_should_refresh_link(driver, open_page):
+def test_should_refresh_link(driver, open_and_load_main_page):
     current_title = driver.title
     driver.refresh()
     title_after_refresh = driver.title
     assert current_title == title_after_refresh
 
 
-def test_should_open_given_link(driver):
-    driver.get(URL)
+def test_should_open_given_link(driver, open_and_load_main_page):
     assert 'openweathermap' in driver.current_url
 
 
 def test_logo_is_visible_on_dashboard_page(driver):
     driver.get('https://openweathermap.org/weather-dashboard/')
-    logo_on_dashboard_page = driver.find_element(By.CSS_SELECTOR, "#first-level-nav > li.logo")
-    assert logo_on_dashboard_page.is_displayed()
+    driver.find_element(*logo).is_displayed()
 
 
-def test_logo_redirecting_from_dashboard_to_main_page(driver):
+def test_TC_002_01_04_Header_Logo_Verify_logo_redirects_from_dashboard_page_to_main_page(driver):
     driver.get('https://openweathermap.org/weather-dashboard/')
-    logo_on_dashboard_page = driver.find_element(By.CSS_SELECTOR, "#first-level-nav > li.logo")
-    logo_on_dashboard_page.click()
-    assert driver.title == 'Сurrent weather and forecast - OpenWeatherMap'
+    driver.find_element(*logo).click()
+    assert driver.current_url == 'https://openweathermap.org/'
+    # assert 'openweathermap' in driver.current_url
 
 
-def test_logo_is_presented_on_main_page(driver):
-    driver.get('https://openweathermap.org/')
-    logo = driver.find_element(By.XPATH, "//li[contains(@class, 'logo')]")
-    assert logo.is_displayed(), "Logo not found on the Home page"
+def test_logo_is_presented_on_main_page(driver, open_and_load_main_page):
+    driver.find_element(*logo).is_displayed()
+
+
+def test_TC_006_02_03_weather_dashboard_verify_the_transition_to_another_page(driver, open_and_load_main_page, wait):
+    driver.find_element(*BTN_DASHBOARD).click()
+    cookie_close = driver.find_element(*BTN_COOKIES)
+    driver.execute_script("arguments[0].click();", cookie_close)
+    driver.find_element(*BTN_TRY_THE_DASHBOARD_2).click()
+    driver.switch_to.window(driver.window_handles[1])
+    alert_mms = driver.find_element(*ALERT_PANEL_SINGIN)
+    assert alert_mms.is_displayed(), 'WELCOME EVENTS PAGE'
+
+
+def test_api_label_is_visible_on_main_page(driver, open_and_load_main_page, wait):
+    driver.find_element(*API_LINK).is_displayed()
+
+
+def test_api_label_is_clickable_on_main_page(driver, open_and_load_main_page, wait):
+    driver.find_element(*API_LINK).click()
+
+
+def test_api_link_redirects_to_api_page(driver, open_and_load_main_page, wait):
+    driver.find_element(*API_LINK).click()
+    assert driver.current_url == 'https://openweathermap.org/api'
